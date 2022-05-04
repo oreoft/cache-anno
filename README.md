@@ -59,4 +59,4 @@
 
 ## 使用许可
 
-[MIT](LICENSE) © Oreoft
+[MIT](../someget-admin/LICENSE) © Oreoft
