@@ -4,11 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>cn.someget</groupId>
     <artifactId>cache-anno</artifactId>
-    <groupId>redis.cache.anno</groupId>
-    <version>0.0.1-SNAPSHOT</version>
     <name>cache-anno</name>
+    <version>0.0.1-SNAPSHOT</version>
     <description>自动缓存注解</description>
+    <url>https://github.com/oreoft/cache-anno</url>
 
     <dependencies>
         <!-- content相关 -->
@@ -22,7 +23,7 @@
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
-            <version>3.0.6</version>
+            <version>2.9.3</version>
         </dependency>
         <!-- aop -->
         <dependency>
@@ -64,8 +65,67 @@
     </dependencies>
 
     <properties>
+        <!--指定jdk版本-->
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <!--编译编码-->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <name>public-releases</name>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+
+        <snapshotRepository>
+            <id>ossrh</id>
+            <name>public-snapshots</name>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+
+    <build>
+        <plugins>
+            <!-- 公开源码 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <attach>true</attach>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--gpg插件-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+
 
 </project>
