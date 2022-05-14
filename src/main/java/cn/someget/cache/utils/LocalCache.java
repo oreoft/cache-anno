@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +24,8 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @Component
-public class LocalCache {
+public class
+LocalCache {
 
     /**
      * 本地缓存容器
@@ -55,7 +56,7 @@ public class LocalCache {
      */
     public Map<String, Object> getAllPresent(List<String> keys) {
         if (CollectionUtils.isEmpty(keys)) {
-            return new HashMap<>(0);
+            return Collections.emptyMap();
         }
         return this.cache.getAllPresent(keys);
     }

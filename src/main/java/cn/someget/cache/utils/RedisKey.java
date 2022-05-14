@@ -23,7 +23,7 @@ public class RedisKey {
     public static final long COMMON_MISS_EXPIRE = 10L;
 
     /**
-     * 通用数组
+     * 取消空缓存过期时间
      */
     public static final Long DISABLE_MISS_VALUE = 0L;
 

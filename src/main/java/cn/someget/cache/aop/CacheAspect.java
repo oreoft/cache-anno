@@ -97,10 +97,10 @@ public class CacheAspect {
             boolean paramCheck = args.length == 2 && (args[1] instanceof List || arg instanceof Map);
             Assert.isFalse(paramCheck, "do not support the args");
             // 验证返回值是否是字典(那么返回参数一定要是Map, 不然无法映射多对多的关系)
-            Assert.isTrue(returnType != Map.class, "param error");
+            Assert.isTrue(returnType == Map.class, "param error");
 
             // 把参数变成恢复成List
-            List<Object> inputList = JSON.parseArray(JSON.toJSONString(arg)).toJavaList(Object.class);
+            List<Object> inputList = JSON.parseArray(JSON.toJSONString(arg), Object.class);
 
             // 把第二个参数拼接到prefix上(若有)
             if (args.length == 2) {
@@ -163,7 +163,7 @@ public class CacheAspect {
             }
             // 如果空缓存过期时间不为0, 则表示需要进行空缓存
             if (!DISABLE_MISS_VALUE.equals(expire)) {
-                redisRepository.writeRedis(key, expire, proceed);
+                redisRepository.set(key, expire, proceed);
             }
         }
         return proceed;
@@ -192,7 +192,7 @@ public class CacheAspect {
         }
         // 如果空缓存过期时间不为0, 则表示需要进行空缓存
         if (!DISABLE_MISS_VALUE.equals(expire)) {
-            redisRepository.writeRedis(key, expire, proceed);
+            redisRepository.set(key, expire, proceed);
         }
         return proceed;
     }
@@ -241,7 +241,7 @@ public class CacheAspect {
             Map<String, Object> keyValues = new HashMap<>(result.size());
             result.forEach((k, v) -> keyValues.put(String.format(prefix, k), v));
             // 然后写入缓存容器
-            redisRepository.batchWriteRedis(keyValues, expire);
+            redisRepository.batchSet(keyValues, expire);
             // 并且放入到要返回的结果中
             objectFromLocalCache.putAll(result);
         }
@@ -256,7 +256,7 @@ public class CacheAspect {
             // 把剩下missList转换成key-Empty写入redis(这里没有回写结果, 因为没区别)
             Map<String, Object> emptyMissData = dbMissingList.stream()
                     .collect(Collectors.toMap(key -> String.format(prefix, key), key -> emptyCallback.apply(clazz)));
-            redisRepository.batchWriteRedis(emptyMissData, missExpire);
+            redisRepository.batchSet(emptyMissData, missExpire);
         }
     }
 

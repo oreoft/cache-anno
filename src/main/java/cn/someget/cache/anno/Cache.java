@@ -1,8 +1,8 @@
 package cn.someget.cache.anno;
 
-import cn.someget.cache.utils.RedisKey;
-
 import java.lang.annotation.*;
+
+import static cn.someget.cache.utils.RedisKey.COMMON_HIT_EXPIRE;
 
 /**
  * 对外暴露的注解
@@ -22,14 +22,14 @@ public @interface Cache {
     String prefix() default "";
 
     /**
-     * 单位秒
+     * 单位秒(默认10分钟)
      */
-    long expire() default 0L;
+    long expire() default COMMON_HIT_EXPIRE;
 
     /**
      * 单位秒
      */
-    long missExpire() default RedisKey.COMMON_MISS_EXPIRE;
+    long missExpire() default 0L;
 
     /**
      * 是否多对多(如果是Map<T, List<E>>的结构才需要设置成true)
@@ -44,7 +44,9 @@ public @interface Cache {
 
     /**
      * 是否使用本地缓存(caffeine)
-     * 注意使用了本地缓存就不会使用redis了
+     * 注意使用本地缓存本质最终兜底还是redis
+     * 只不过获取redis之前会尝试走caffeine获取(ttl3秒目前不可以改)
+     * p.s. 自行考虑好业务场景以及对数据不一致的接受程度
      */
     boolean usingLocalCache() default false;
 

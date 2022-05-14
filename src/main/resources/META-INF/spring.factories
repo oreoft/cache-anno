@@ -1,0 +1,7 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  cn.someget.cache.utils.RedisRepository,\
+  cn.someget.cache.utils.LocalCache,\
+  cn.someget.cache.aop.CacheAspect,\
+  cn.someget.cache.service.impl.LocalCacheServiceImpl,\
+  cn.someget.cache.service.impl.RedisCacheServiceImpl\
+  
