@@ -39,6 +39,8 @@
 
 本库已经上架maven中央仓库，已经引入到自己项目pom文件中就行，**请注意直接在mvnrepository会出现很多2.0.0以下的版本，请不要使用**，那...那...是我上架的是做测试不小心发到release上的debug版本。
 
+**所有版本查询请点击[这里](https://mvnrepository.com/artifact/cn.someget/cache-anno)** [**这里**](https://mvnrepository.com/artifact/cn.someget/cache-anno) [**这里**](https://mvnrepository.com/artifact/cn.someget/cache-anno)
+
 Maven
 
 ```xml
@@ -76,7 +78,8 @@ implementation group: 'cn.someget', name: 'cache-anno', version: '2.0.0'
 1. 入门使用以及原理
 
 ```java
-    @Cache(prefix = "user:info:%d", clazz = UserInfoBO.class)
+    // 建议prefix定义成常量，便于复用
+		@Cache(prefix = "user:info:%d", clazz = UserInfoBO.class)
     public UserInfoBO getIpUserInfo(Long uid) {
         UserInfo userInfo = userInfoMapper.selectByUid(uid);
         if (userInfo == null) {
@@ -90,7 +93,7 @@ implementation group: 'cn.someget', name: 'cache-anno', version: '2.0.0'
 
 上述方法如果没有加@Cache注解，就是一个简单从用户表中根据uid查询用户信息的方法，但是加了@Cache后它还是这么一个简单方法。**只不过查询之前会根据注解中的prefix拼接上入参uid从Redis中尝试获取数据，如果没有数据则执行方法，执行完方法再自动写入缓存**。那么下次在执行这个方法的时候，又会执行上面步骤prefix拼接入参尝试从Redis获取数据，但是因为上次自动写入了，所以拿到数据就直接返回了，不会再执行方法走DB查询了。
 
-![image-20220514204948154](https://mypicgogo.oss-cn-hangzhou.aliyuncs.com/tuchuang20220514204948.png)
+<img src="https://mypicgogo.oss-cn-hangzhou.aliyuncs.com/tuchuang20220514204948.png" alt="image-20220514204948154" style="zoom:67%;" />
 
 2. 进阶理解
 
@@ -112,7 +115,7 @@ implementation group: 'cn.someget', name: 'cache-anno', version: '2.0.0'
 
 上述方法如果没有加@Cache注解，就是一个批量通过itemId从其他服务远程获取item详细信息的方法，但是加了@Cache它还是这么一个方法，只不过查询之前会通过把入参所有的itemId进行和注解里面的prefix拼接，然后**批量一次性尝试从redis里面获取，如果所有itemId都获取到则直接返回，但是如果有未命中的itemId则会把这未命中的itemId再统一走方法进行远程获取最后和Redis里面的汇总(远程获取完 会自动写入)**
 
-![image-20220514204802863](https://mypicgogo.oss-cn-hangzhou.aliyuncs.com/tuchuang20220514204802.png)
+<img src="https://mypicgogo.oss-cn-hangzhou.aliyuncs.com/tuchuang20220514204802.png" alt="image-20220514204802863" style="zoom:67%;" />
 
 #### 三. 所有支持的方法类型
 
@@ -138,7 +141,7 @@ implementation group: 'cn.someget', name: 'cache-anno', version: '2.0.0'
 | clazz           | 返回值对应类型          | 对应类型, 反序列化需要使用, **这是必传**                     |
 | usingLocalCache | 是否使用本地缓存        | 设置true以后从Redis读取之前会查询一遍本地缓存(使用caffeine)，同理拿完数据也会回写到caffeine |
 
-#### 四.  功能详细说明
+#### 四.  其他功能详细说明
 
 > 启用空缓存写入
 
