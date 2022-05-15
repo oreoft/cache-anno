@@ -35,6 +35,8 @@
 2. 减少手动编码犯错, 内置可选防缓存击穿\穿透功能。
 3. 减少工作量, 早点下班回家吃饭嗷嗷嗷~
 
+功能类似Spring-cache，但是我普信男一次，我觉得本库比Springcache的好用很多，首先Spring-cache的不支持给每次写入的key单独设置过期时间，这个已经劝退我了；然后EL表达式上手成本也很高，但是它实现的功能是很简单的无感功能，我觉得这和Spring本身的约定大于配置相违背，相反呢本库提供四种类型(下面介绍)让你遵循约定减少配置，最简单只需要提供prefix就可以使用。Spring-cache也不支持批量查询过程中只查询增量数据，也不支持空缓存，也不支持防击穿.....
+
 ## 安装导入
 
 本库已经上架maven中央仓库，已经引入到自己项目pom文件中就行，**请注意直接在mvnrepository会出现很多2.0.0以下的版本，请不要使用**，那...那...是我上架的是做测试不小心发到release上的debug版本。
@@ -123,7 +125,7 @@ implementation group: 'cn.someget', name: 'cache-anno', version: '2.0.0'
 | 类型            | prefix        | 入参                     | 出参                                                     | 备注                                                         |
 | --------------- | ------------- | ------------------------ | -------------------------------------------------------- | ------------------------------------------------------------ |
 | one to one      | 自定义:占位符 | 包装类型或者String       | ? extends Object                                         | 有几个入参就要有几个占位符，不然无法使用                     |
-| ont to list     | 自定义:掌握福 | 包装类型或者String       | List<? extends Object>                                   | 同上，理论上来说List和object对于本库是一个东西，因为我是用的是String的序列化，相同理解就好。 |
+| ont to list     | 自定义:占位符 | 包装类型或者String       | List<? extends Object>                                   | 同上，理论上来说List和object对于本库是一个东西，因为我是用的是String的序列化，相同理解就好。 |
 | list to map_one | 自定义:占位符 | List<包装类型或者String> | Map<对应入参包装类型或者String,  ? extends Object>       | 如果是批量查询，第一个入参一定要是对应的查询List。list里面的每一个元素都会与prefix拼接，所以prefix的占位符是List里面的元素对应的占位符。 |
 | list to map_map | 自定义:占位符 | List<包装类型或者String> | Map<对应入参包装类型或者String,  List<? extends Object>> | 本类型其实也同上，上类型List中每一个元素对应的是一个对象，这个类型List每个元素对应的是一个list，我反序列化都是以一样的，所以本质一样。<br />**因为java的泛型擦除的限制我无法判断Map的value泛型具体是什么， 请@Cache中的参数hasMoreValue需要设置成true，请切记** |
 
@@ -161,7 +163,7 @@ implementation group: 'cn.someget', name: 'cache-anno', version: '2.0.0'
 
 有不少场景进行本地缓存提升都非常大，本库也支持进行本地缓存，只需使用注解是把usingLocalCache的属性设置为true(默认是false)，本库使用的本地缓存是最近风头压过guava的caffeine，这样获取数据之前先从本地缓存进行查询，如果本地缓存没有命中则再去查询Redis。
 
-注意：多层缓存会增加Cache-DB不一致可能，一定程度消流可以用，但是不要过分依赖，这里本地缓存默认TTL是3秒，暂时不支持修改。
+注意：多层缓存会增加Cache-DB不一致可能，一定程度抗流可以用，但是不要过分依赖，这里本地缓存默认TTL是3秒，暂时不支持修改。
 
 ##### 
 
