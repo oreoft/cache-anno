@@ -60,10 +60,10 @@ public class RedisRepository {
         String valueStr = value instanceof String ? value.toString() : JSON.toJSONString(value);
         try {
             redisTemplate.opsForValue().set(key, valueStr, expire, TimeUnit.SECONDS);
-            log.info("redis set, value:{}", valueStr);
+            log.info("redis set, keys:[{}] value:[{}]",key, valueStr);
         } catch (Exception e) {
-            log.warn("cache-anno redis set error, keyValues:{}, expire:{}, msg:{}",
-                    JSON.toJSONString(valueStr), expire, e.getMessage());
+            log.warn("cache-anno redis set error, keys:[{}], values:[{}], expire:{}, msg:{}",
+                    key, JSON.toJSONString(valueStr), expire, e.getMessage());
         }
     }
 

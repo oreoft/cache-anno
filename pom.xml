@@ -6,7 +6,7 @@
 
     <groupId>cn.someget</groupId>
     <artifactId>cache-anno</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
     <name>cache-anno</name>
     <description>自动缓存注解</description>
     <url>https://github.com/oreoft/cache-anno</url>
@@ -89,7 +89,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>2.0.2</version>
+            <version>1.2.80</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

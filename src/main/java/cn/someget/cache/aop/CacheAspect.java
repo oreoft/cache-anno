@@ -26,11 +26,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static cn.someget.cache.utils.RedisKey.DISABLE_MISS_VALUE;
+import static cn.someget.cache.utils.RedisKey.*;
 
 /**
  * 切面处理
@@ -110,21 +109,29 @@ public class CacheAspect {
                 }
             }
 
-            // 去缓存容器里面取数据, list one to many(Map<K, List<V>)
-            if (hasMoreValue) {
-                Map<Object, ?> objectFromLocalCache = cacheService.getObjectListFromCache(inputList, clazz, prefix);
-                // 执行自动缓存方法 list one to many(Map<K, List<V>)
-                doHandleListCache(inputList, clazz, objectFromLocalCache, joinPoint, prefix, expire,
-                        instance -> new ArrayList<>(), args, missExpire);
-                return objectFromLocalCache;
-            }
+            /*
+             * 去缓存容器里面取数据
+             * true  list to many(Map<K, List<V>)
+             * false list to one(Map<K, V>)
+             */
+            Map<Object, ?> cacheMap = hasMoreValue
+                    ? cacheService.getObjectListFromCache(inputList, clazz, prefix)
+                    : cacheService.getObjectFromCache(inputList, clazz, prefix);
 
-            // 去缓存容器里面取数据, list one to one(Map<K, V>)
-            Map<Object, ?> objectFromLocalCache = cacheService.getObjectFromCache(inputList, clazz, prefix);
-            // 执行自动缓存方法 list one to one(Map<K, V>)
-            doHandleListCache(inputList, clazz, objectFromLocalCache, joinPoint, prefix, expire,
-                    instance -> this.buildEmptyObject(clazz), args, missExpire);
-            return objectFromLocalCache;
+            // 空缓存类型
+            String emptyCache = hasMoreValue ? EMPTY_COLLECTION : EMPTY_OBJECT;
+
+            /*
+             * 执行自动缓存方法
+             * list list to many(Map<K, List<V>)
+             * list list to one(Map<K, V>)
+             */
+            doHandleListCache(inputList, clazz, cacheMap, joinPoint, prefix, expire, emptyCache, args, missExpire);
+
+            // 把里面元素
+            return cacheMap.entrySet().stream()
+                    .filter(entry -> !EMPTY_OBJECT.equals(JSON.toJSONString(entry.getValue())))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         } else {
             // 如果第一个入参不是list,说明是一对一或者一对多的返回
             String key = String.format(prefix, args);
@@ -181,20 +188,28 @@ public class CacheAspect {
         Object objectFromLocalCache = cacheService.getObjectFromCache(key, returnType);
         // 如果有数据, 则直接返回
         if (objectFromLocalCache != null) {
-            return objectFromLocalCache;
+            if (EMPTY_OBJECT.equals(JSON.toJSONString(objectFromLocalCache))) {
+                return null;
+            } else {
+                return objectFromLocalCache;
+            }
         }
         // 如果没有命中则走方法拿数据
         Object proceed = joinPoint.proceed();
-        // 如果方法也返回null, 则设置空缓存
-        if (proceed == null) {
-            proceed = buildEmptyObject(returnType);
+        Object result = proceed;
+        // 如果方法返回null并且没有禁用空缓存, 则设置空缓存
+        if (proceed == null && !DISABLE_MISS_VALUE.equals(missExpire)) {
+            proceed = RedisKey.EMPTY_OBJECT;
             expire = missExpire;
         }
-        // 如果空缓存过期时间不为0, 则表示需要进行空缓存
-        if (!DISABLE_MISS_VALUE.equals(expire)) {
+        /*
+            结果不为空的话, 写入redis
+            (只有一种情况为空, 就是方法为空并且还没有启用空缓存, 那直接就返回null)
+         */
+        if (proceed != null) {
             redisRepository.set(key, expire, proceed);
         }
-        return proceed;
+        return result;
     }
 
     /**
@@ -206,7 +221,7 @@ public class CacheAspect {
                                    Map<Object, ?> objectFromLocalCache,
                                    ProceedingJoinPoint joinPoint,
                                    String prefix, long expire,
-                                   UnaryOperator<Object> emptyCallback,
+                                   String emptyCache,
                                    Object[] args, long missExpire) throws Throwable {
         // objectFromLocalCache这个已经是从缓存容器里面取出来的值, 看一下inputList中少了没有, 如果少了放miss部分走方法给它补上
         List<Object> cacheMissList = inputList.stream()
@@ -255,23 +270,8 @@ public class CacheAspect {
         if (!DISABLE_MISS_VALUE.equals(missExpire)) {
             // 把剩下missList转换成key-Empty写入redis(这里没有回写结果, 因为没区别)
             Map<String, Object> emptyMissData = dbMissingList.stream()
-                    .collect(Collectors.toMap(key -> String.format(prefix, key), key -> emptyCallback.apply(clazz)));
+                    .collect(Collectors.toMap(key -> String.format(prefix, key), key -> emptyCache));
             redisRepository.batchSet(emptyMissData, missExpire);
         }
     }
-
-    /**
-     * 制造空缓存
-     */
-    private Object buildEmptyObject(Class<?> clazz) {
-        Object empty = null;
-        try {
-            Method emptyMethod = clazz.getMethod("emptyObject");
-            empty = emptyMethod.invoke(null);
-        } catch (Exception e) {
-            log.warn("call static emptyObject error, className:{}", clazz.getName());
-        }
-        return empty == null ? RedisKey.EMPTY_OBJECT : JSON.toJSONString(empty);
-    }
-
 }

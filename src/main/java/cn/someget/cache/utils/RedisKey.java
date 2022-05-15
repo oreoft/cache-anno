@@ -30,7 +30,12 @@ public class RedisKey {
     /**
      * 通用空对象缓存
      */
-    public static final String EMPTY_OBJECT = "{\"id\":-1}";
+    public static final String EMPTY_OBJECT = "{}";
+
+    /**
+     * 空缓存 value
+     */
+    public static final String EMPTY_COLLECTION = "[]";
 
     /**
      * 分布式锁失效时间，单位秒

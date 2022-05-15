@@ -78,8 +78,8 @@ implementation group: 'cn.someget', name: 'cache-anno', version: '2.0.0'
 1. 入门使用以及原理
 
 ```java
-    // 建议prefix定义成常量，便于复用
-		@Cache(prefix = "user:info:%d", clazz = UserInfoBO.class)
+	// 建议prefix定义成常量，便于复用, one to one可以不用传clazz参数
+	@Cache(prefix = "user:info:%d")
     public UserInfoBO getIpUserInfo(Long uid) {
         UserInfo userInfo = userInfoMapper.selectByUid(uid);
         if (userInfo == null) {
@@ -98,7 +98,8 @@ implementation group: 'cn.someget', name: 'cache-anno', version: '2.0.0'
 2. 进阶理解
 
 ```java
-    @Cache(prefix = "mall:item:%d", clazz = MallItemsBO.class)
+	// 返回值是集合类型，clazz必须要传
+	@Cache(prefix = "mall:item:%d", clazz = MallItemsBO.class)
     public Map<Long, MallItemsBO> listItems(List<Long> itemsIds) {
         BaseResult<List<MallItemsDTO>> result = itemsRemoteClient.listItems(new ItemsReqDTO());
         if (result == null || CollectionUtils.isEmpty(result.getData())) {
@@ -138,7 +139,7 @@ implementation group: 'cn.someget', name: 'cache-anno', version: '2.0.0'
 | expire          | 过期时间(单位秒)        | 如果使用注解的时候不设置则默认10分钟，注意本库写入缓存都有过期时间，因为我想不到你为啥要不设置TTL |
 | missExpire      | 空缓存过期时间(单位秒)  | 如果是0则表示不开启空缓存(默认是0)，空缓存过期时间表示如果从db也没查到生成空缓存到Redis，这个空缓存的过期时间(肯定正常缓存短，推荐3-10秒) |
 | hasMoreValue    | 是否list to map_map类型 | 因为java的泛型擦除的限制我无法判断Map的value泛型具体是什么， 请@Cache中的参数hasMoreValue需要设置成true，请切记 |
-| clazz           | 返回值对应类型          | 对应类型, 反序列化需要使用, **这是必传**                     |
+| clazz           | 集合类返回值对应类型    | **如果返回值是List或者Map**，**这个必传**，因为java泛型擦除我不知道你集合泛型，反序列化需要使用。如果是one to one类型的话，这个可以省略。 |
 | usingLocalCache | 是否使用本地缓存        | 设置true以后从Redis读取之前会查询一遍本地缓存(使用caffeine)，同理拿完数据也会回写到caffeine |
 
 #### 四.  其他功能详细说明
@@ -149,7 +150,10 @@ implementation group: 'cn.someget', name: 'cache-anno', version: '2.0.0'
 
 ![image-20220514213607659](https://mypicgogo.oss-cn-hangzhou.aliyuncs.com/tuchuang20220514213607.png)
 
-注意：开启空缓存以后插入记录后也要进行删除缓存处理，因为可能对应值DB中已经有了，但是Redis还存在空值正处于TTL中。
+注意：
+
+- 开启空缓存以后插入记录后也要进行删除缓存处理，因为可能对应值DB中已经有了，但是Redis还存在空值正处于TTL中。
+- ~~空缓存如果是对象是会缓存id为-1的对象，如果是集合会缓存一个空集合，id为-1的对象不会返回给方法调用方，会直接被过滤掉，符合大家编码习惯。**要注意的是缓存对象必须要有id字段(Integer和Long都可以)，否则无法过滤会返回的一个所有属性都是null的空对象。**~~2.0.1版已经支持设置对象空缓存为`"{}"`所以不用必须含有id字段了，如果命中空缓存方法调用方拿到的是null，符合大家编码习惯，**但是所有空缓存对象一定要有无参构造，否则反序列化无法生成空对象。**
 
 > 启用本地缓存
 
@@ -161,9 +165,9 @@ implementation group: 'cn.someget', name: 'cache-anno', version: '2.0.0'
 
 ##### 
 
-## 下一步计划
+## 下一步计划(划线表示完成)
 1. 完善单测, 欢迎大家放心pr
-2. 目前如果开启存储空缓存, 读取未命中key时会把空缓存返回, 需要调用方法再过滤一下, 我思考一下是不是应该在切面就直接过滤
+2. ~~目前如果开启存储空缓存, 读取未命中key时会把空缓存返回, 需要调用方法再过滤一下, 我思考一下是不是应该在切面就直接过滤~~(2.0.1)版本已经支持如果是命中对象空缓存方法调用方拿到的值是null而不是空缓存，不用再业务代码再进行空缓存判断，集合空缓存依然会返回空List。
 3. 防止缓存击穿已经有好的方案, 下个版本迭代进去
 3. 使用注解对缓存进行逐出
 
@@ -185,4 +189,4 @@ implementation group: 'cn.someget', name: 'cache-anno', version: '2.0.0'
 
 ## 使用许可
 
-[MIT](../someget-admin/LICENSE) © Oreoft
+[MIT](../cache-anno/LICENSE) © Oreoft
