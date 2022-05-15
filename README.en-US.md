@@ -19,11 +19,11 @@ Automatic cache annotation based on Spring AOP, support Redis and local cache, r
 ## content list
 
 - [background](#background)
-- [How to import](#How to import)
-- [How to use](#How to use)
-- [next steps](#next steps (Secant means completion))
+- [how to import](#how-to-import)
+- [how to use](#how-to-use)
+- [next steps](#next-steps)
 - [maintainers](#maintainers)
-- [How to contribute](#How to contribute)
+- [how to contribute](#how-to-contribute)
     - [Contributor](#Contributor)
 - [License](#License)
 
@@ -36,7 +36,7 @@ The goals of this repository are:
 2. Reduce manual coding issues, built-in optional anti-cache breakdown/penetration function.
 3. Reduce workload, get home early for dinner
 
-## How to import
+## how-to-import
 
 This library has been put on the maven central warehouse, only need to import the pom file of the project. Please note ``` that version 1.x.x are testing version and cannot work properly```
 
@@ -63,7 +63,7 @@ implementation group: 'cn.someget', name: 'cache-anno', version: '2.0.0'
 
 
 There is no configure need to for this library, all beans are exposed through spring.factories and can be directly scanned by the startup class.
-## How to use
+## how-to-use
 
 #### 1. Notes
 
@@ -177,7 +177,7 @@ The local cache used by this library is caffeine, which has recently overwhelmed
 Note: Multi-layer caching will increase the possibility of Cache-DB inconsistency. Here, the default TTL of the local cache is 3 seconds, and modification is not supported for the time being.
 ##### 
 
-## next steps (Secant means completion)
+## next-steps
 1. Improve unit testing, welcome everyone to pr
 2. The caller that hits the empty cache method of the object currently gets ```null``` instead of the empty cache. The business code does not need to judge the empty cache, and the collection empty cache will still return an empty List.
 3. There are already good solutions to prevent cache breakdown, and the next version will merge
@@ -187,7 +187,7 @@ Note: Multi-layer caching will increase the possibility of Cache-DB inconsistenc
 
 [@Oreoft](https://github.com/oreoft)
 
-## How to contribute
+## how-to-contribute
 
 Your joining is very welcome! [New Issue](https://github.com/oreoft/cache-anno/issues/new) or Pull Request.
 
