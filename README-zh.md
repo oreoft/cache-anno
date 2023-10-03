@@ -1,8 +1,8 @@
 # Cache-anno
 
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
-
-简体中文 | [English](./README.en-US.md)
+简体中文
+English | [简体中文](./README-zh.md)
 
 自动缓存方法数据注解
 
