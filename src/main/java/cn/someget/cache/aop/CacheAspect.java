@@ -99,7 +99,7 @@ public class CacheAspect {
             Assert.isTrue(returnType == Map.class, "param error");
 
             // 把参数变成恢复成List
-            List<Object> inputList = JSON.parseArray(JSON.toJSONString(arg), Object.class);
+            List<Object> inputList = (List<Object>) arg;
 
             // 把第二个参数拼接到prefix上(若有)
             if (args.length == 2) {

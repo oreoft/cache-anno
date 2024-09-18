@@ -2,6 +2,7 @@ package cn.someget.cache.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.text.CharSequenceUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.someget.cache.service.CacheService;
 import cn.someget.cache.utils.RedisRepository;
 import com.alibaba.fastjson.JSON;
@@ -83,8 +84,8 @@ public class RedisCacheServiceImpl implements CacheService {
      * @return 返回map, 其中key是占位符元素, value是key对应的value
      */
     private <K> Map<K, String> getRedisData(List<K> ids, String prefix) {
-        // 取出里面的空元素
-        ids.removeIf(Objects::isNull);
+        // 移除空元素
+        ids = ids.stream().filter(ObjectUtil::isNotNull).collect(Collectors.toList());
         List<String> keys = ids.stream().map(id -> String.format(prefix, id)).collect(Collectors.toList());
         // 从redis中取数据
         Map<String, String> cacheData = redisRepository.multiGet(keys);
